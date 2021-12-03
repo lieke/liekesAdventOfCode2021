@@ -2,7 +2,47 @@
   println("Welcome to day three of the Advent of Code!")
   val result = findPowerConsumption(input)
   println("The power consumption is: " + result)
-  
+  val oxygenRating = findOxygenGeneratorRating(input)
+  val scrubberRating = findCO2ScrubberRating(input)
+  println("The life support rating is: " + (oxygenRating * scrubberRating))
+
+
+def findOxygenGeneratorRating(binaryNumberList:List[String]): Int = 
+  var resultList: List[String] = binaryNumberList
+  var oxygenGeneratorMatchList: List[String] = getOxygenGeneratorList(resultList)
+  var startOfPattern:String = ""
+  var index = 0
+  while (resultList.length > 1)
+    val patternToMatch:String = startOfPattern + oxygenGeneratorMatchList(index)+ "\\d*"
+    resultList = resultList.filter(x => x.matches(patternToMatch))
+    oxygenGeneratorMatchList = getOxygenGeneratorList(resultList)
+    startOfPattern = startOfPattern + "\\d"
+    index = index + 1
+  Integer.parseInt(resultList(0),2)
+
+def findCO2ScrubberRating(binaryNumberList:List[String]): Int = 
+  var resultList: List[String] = binaryNumberList
+  var scrubberMatchList: List[String] = getCO2ScrubberList(resultList)
+  var startOfPattern:String = ""
+  var index = 0
+  while (resultList.length > 1)
+    val patternToMatch:String = startOfPattern + scrubberMatchList(index)+ "\\d*"
+    resultList = resultList.filter(x => x.matches(patternToMatch))
+    scrubberMatchList = getCO2ScrubberList(resultList)
+    startOfPattern = startOfPattern + "\\d"
+    index = index + 1
+  Integer.parseInt(resultList(0),2)
+
+def getOxygenGeneratorList(binaryNumberList: List[String]): List[String] = 
+  val totalAmountOfBinaryNumbers = binaryNumberList.length
+  createAListWithAllTheValuesAddedUp(binaryNumberList)
+    .map(amountOf1s => if(amountOf1s >= (totalAmountOfBinaryNumbers - amountOf1s)) "1" else "0")
+
+def getCO2ScrubberList(binaryNumberList: List[String]): List[String] = 
+  val totalAmountOfBinaryNumbers = binaryNumberList.length
+  createAListWithAllTheValuesAddedUp(binaryNumberList)
+    .map(amountOf1s => if(amountOf1s >= (totalAmountOfBinaryNumbers - amountOf1s)) "0" else "1")
+
 
 def findPowerConsumption(binaryNumbersList: List[String]): Int = 
   val totalAmountOfBinaryNumbers = binaryNumbersList.length

@@ -1,5 +1,6 @@
 import org.junit.Test
 import org.junit.Assert.*
+import scala.util.matching.Regex
 
 class Test1:
   val firstNumber: String = "00100"
@@ -45,13 +46,85 @@ class Test1:
     val powerConsumption:Int = findPowerConsumption(numberList)
     assertEquals(198, powerConsumption)
 
+class Test2:
+  val numberList: List[String] = List("00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000", "11001", "00010", "01010")
+  
+  @Test def allTheSweepTests(): Unit = 
+    var oxygenGeneratorMatchList: List[String] = getOxygenGeneratorList(numberList)
+    val firstMatchPattern:String = oxygenGeneratorMatchList(0)+"\\d+"
+    println(firstMatchPattern)
+    val firstSweepList = numberList.filter(x => x.matches(firstMatchPattern))
+    assertEquals(firstSweepList.length, 7)
+
+    oxygenGeneratorMatchList = getOxygenGeneratorList(firstSweepList)
+    val secondMatchPattern: String = "\\d"+oxygenGeneratorMatchList(1)+"\\d+"
+    val secondSweepList = firstSweepList.filter(x => x.matches(secondMatchPattern))
+    assertEquals(secondSweepList.length, 4)
+
+    oxygenGeneratorMatchList = getOxygenGeneratorList(secondSweepList)
+    val thirdMatchPattern: String = "\\d\\d"+oxygenGeneratorMatchList(2)+"\\d+"
+    val thirdSweepList = secondSweepList.filter(x => x.matches(thirdMatchPattern))
+    assertEquals(thirdSweepList.length, 3)
+  
+  @Test def oxygenWithAWhileLoop(): Unit = 
+    var resultList: List[String] = numberList
+    var oxygenGeneratorMatchList: List[String] = getOxygenGeneratorList(resultList)
+    var startOfPattern:String = ""
+    var index = 0
+    while (resultList.length > 1)
+      val patternToMatch:String = startOfPattern + oxygenGeneratorMatchList(index)+ "\\d*"
+      println("Sweep numer " + index + " - pattern " + patternToMatch)
+      resultList = resultList.filter(x => x.matches(patternToMatch))
+      println("New result " + resultList)
+      oxygenGeneratorMatchList = getOxygenGeneratorList(resultList)
+      startOfPattern = startOfPattern + "\\d"
+      index = index + 1
+    val result:Int = Integer.parseInt(resultList(0),2)
+    assertEquals(index, 5)
+    assertEquals(resultList(0), "10111")
+    assertEquals(result, 23)
+
+  @Test def scrubberWithAWhileLoop(): Unit = 
+    var resultList: List[String] = numberList
+    var scrubberMatchList: List[String] = getCO2ScrubberList(resultList)
+    var startOfPattern:String = ""
+    var index = 0
+    while (resultList.length > 1)
+      val patternToMatch:String = startOfPattern + scrubberMatchList(index)+ "\\d*"
+      println("Sweep numer " + index + " - pattern " + patternToMatch)
+      resultList = resultList.filter(x => x.matches(patternToMatch))
+      println("New result " + resultList)
+      scrubberMatchList = getCO2ScrubberList(resultList)
+      startOfPattern = startOfPattern + "\\d"
+      index = index + 1
+    val result:Int = Integer.parseInt(resultList(0),2)
+    assertEquals(index, 3)
+    assertEquals(resultList(0), "01010")
+    assertEquals(result, 10)
+
+
 def findPowerConsumption(binaryNumbersList: List[String]): Int = 
-  val totalAmountOfBinaryNumbers = binaryNumbersList.length
-  val gammaList: List[Int] = createAListWithAllTheValuesAddedUp(binaryNumbersList)
-    .map(amountOf1s => if(amountOf1s > totalAmountOfBinaryNumbers - amountOf1s) 1 else 0)
-  val epsilonList: List[Int] = gammaList
-    .map(element => if(element == 0) 1 else 0)
+  val gammaList: List[Int] = getGammaList(binaryNumbersList)
+  val epsilonList: List[Int] = getEpsilonList(gammaList)
   createDecimalNumberFromList(gammaList) * createDecimalNumberFromList(epsilonList)
+
+def getGammaList(binaryNumberList: List[String]): List[Int] = 
+  val totalAmountOfBinaryNumbers = binaryNumberList.length
+  createAListWithAllTheValuesAddedUp(binaryNumberList)
+    .map(amountOf1s => if(amountOf1s > (totalAmountOfBinaryNumbers - amountOf1s)) 1 else 0)
+
+def getOxygenGeneratorList(binaryNumberList: List[String]): List[String] = 
+  val totalAmountOfBinaryNumbers = binaryNumberList.length
+  createAListWithAllTheValuesAddedUp(binaryNumberList)
+    .map(amountOf1s => if(amountOf1s >= (totalAmountOfBinaryNumbers - amountOf1s)) "1" else "0")
+
+def getCO2ScrubberList(binaryNumberList: List[String]): List[String] = 
+  val totalAmountOfBinaryNumbers = binaryNumberList.length
+  createAListWithAllTheValuesAddedUp(binaryNumberList)
+    .map(amountOf1s => if(amountOf1s >= (totalAmountOfBinaryNumbers - amountOf1s)) "0" else "1")
+
+def getEpsilonList(gammaList: List[Int]): List[Int] = 
+  gammaList.map(element => if(element == 0) 1 else 0)
 
 def createDecimalNumberFromList(binaryAsList: List[Int]): Int = 
   Integer.parseInt(binaryAsList.mkString(""), 2)
