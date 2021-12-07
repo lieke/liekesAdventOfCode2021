@@ -7,7 +7,8 @@ class CoordinatesTest extends AnyFlatSpec with Matchers {
   //// a single coordinate
   val coordinateTupleVerticalLine: Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]] = ((0,9),(5,9))
   val coordinateTupleHorizontalLine: Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]] = ((0,0),(0,5))
-  val diagonalLine: Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]] = ((2,3),(3,4))
+  val diagonalLine: Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]] = ((2,0),(0,2))
+  val wrongdiagonalline: Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]] = ((2,0),(3,2))
   val backwardLine: Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]] = ((9,4),(3,4))
   val verticalLineList: List[Tuple2[Int, Int]] = createAllTheLineCoordinates(coordinateTupleVerticalLine)
   "A vertical tuple" should "create a list with all coordinates of that line" in {
@@ -36,6 +37,55 @@ class CoordinatesTest extends AnyFlatSpec with Matchers {
   val amountOfOverlappingLines = allCoordinatesWithOccurences.collect{ case (key, value) if (value > 1) => (key, value)}.size
   "The amount of overlapping lines" should "also be correctly calculated" in {
     amountOfOverlappingLines shouldEqual 5
+  }
+
+  //// now add diagonal lines
+  val isAGoodDiagonalLine: Boolean = checkIfItIsAValidDiagonalLine(diagonalLine)
+  val isNotGoodDiagonalLine: Boolean = checkIfItIsAValidDiagonalLine(wrongdiagonalline)
+  "A diagonal line" should "be in a 45 degree angle" in {
+    isAGoodDiagonalLine shouldEqual true
+    isNotGoodDiagonalLine shouldEqual false
+  }
+  val goodDiagonalList = createDiagonalLine(diagonalLine)
+  val wrongDiagonalList = createDiagonalLine(wrongdiagonalline)
+  "A diagonal line" should "create the right kind of cover points" in {
+    goodDiagonalList shouldEqual List((0,2),(1,1),(2,0))
+    wrongDiagonalList shouldEqual List()
+  }
+
+  def createDiagonalLine(coordinate:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]): List[Tuple2[Int,Int]] = {
+    var result: List[Tuple2[Int,Int]] = List()
+    if(checkIfItIsAValidDiagonalLine(coordinate)) {
+      var x = coordinate._1._1
+      var y = coordinate._1._2
+      val endX = coordinate._2._1
+      val endY = coordinate._2._2
+      while (x != endX) {
+        result = (x,y) :: result
+        if (x < endX) x+=1 else x-=1
+        if (y < endY) y+=1 else y-=1
+      }
+      result = (endX, endY) :: result
+    }
+    println(result)
+    result
+  }
+
+  def checkIfItIsAValidDiagonalLine(coordinateTuple:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]): Boolean = {
+    val differenceX: Int = coordinateTuple._1._1 - coordinateTuple._2._1
+    ((coordinateTuple._1._2 + differenceX == coordinateTuple._2._2)||(coordinateTuple._1._2 - differenceX == coordinateTuple._2._2))
+  }
+
+  def createTheTheLineCoordinatesWithDiagonals(coordinateTuple:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]):  List[Tuple2[Int, Int]] = {
+    var coordinatesToWorkWith = coordinateTuple
+    if ((coordinateTuple._1._1 > coordinateTuple._2._1) || (coordinateTuple._1._2 > coordinateTuple._2._2)) {
+      coordinatesToWorkWith = coordinateTuple.swap
+    }
+    coordinatesToWorkWith match {
+      case ((start,y1),(end,y2)) if (y1 == y2) => createVerticalLine(start, end, y1)
+      case ((x1,start),(x2,end)) if (x1 == x2) => createHorizontalLine(start, end, x1)
+      case _ => createDiagonalLine(coordinatesToWorkWith)
+    }
   }
 
   def createAllTheLineCoordinates(coordinateTuple:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]):  List[Tuple2[Int, Int]] = {

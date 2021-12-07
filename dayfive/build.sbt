@@ -1,12 +1,12 @@
-val scala3Version = "3.1.0"
+import Dependencies._
 
-lazy val root = project
-  .in(file("."))
+ThisBuild / scalaVersion     := "2.13.7"
+ThisBuild / version          := "0.1.0-SNAPSHOT"
+ThisBuild / organization     := "com.example"
+ThisBuild / organizationName := "example"
+
+lazy val root = (project in file("."))
   .settings(
     name := "dayfive",
-    version := "0.1.0-SNAPSHOT",
-
-    scalaVersion := scala3Version,
-
-    libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
+    libraryDependencies += scalaTest % Test
   )

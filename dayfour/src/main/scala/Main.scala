@@ -3,6 +3,8 @@
   val theWinningCard = findTheWinningBingoCard(allCards, theDraws)
   val theScore = findTheScore(allCards, theDraws)
   println("The score of the winning card is: " + theScore)
+  val theLoosingScore = findTheLoosingScore(allCards, theDraws)
+  println("The score of the loosing card is: " + theLoosingScore)
 
 def findTheScore(allCards: List[List[List[Int]]], allDraws: List[Int]): Int = 
   var allCardsWithMarkings: List[List[Map[Int, Boolean]]] = createSetupForMarkings(allCards)
@@ -17,8 +19,44 @@ def findTheScore(allCards: List[List[List[Int]]], allDraws: List[Int]): Int =
       case (key, false) => (key, false)})
   val sum = onlyTheValuesOfWinningCard.foldLeft(Set[Int]())(_ ++ _.keySet).foldLeft(0)(_ + _)
   sum * allDraws(nextDraw)
-  
-def findTheWinningBingoCard(allCards: List[List[List[Int]]], allDraws: List[Int]): Int = 
+
+def findTheLoosingScore(allCards: List[List[List[Int]]], allDraws: List[Int]): Int =
+  var theMutatingDraws = allDraws
+  var allCardsWithMarkings: List[List[Map[Int, Boolean]]] = createSetupForMarkings(allCards)
+  var theLoosingCard = -1
+  while (theLoosingCard < 0) {
+    theLoosingCard = findTheLoosingBingoCard(allCardsWithMarkings, theMutatingDraws)
+    theMutatingDraws = theMutatingDraws.slice(0, theMutatingDraws.length-1)
+  }
+  val theFinalMarkingToDetermineLooser = theDraws(theMutatingDraws.length+1)
+  val markedLoosingCard = markAllDrawsOnACard(allCardsWithMarkings(theLoosingCard).slice(0,5), theDraws.slice(0, theMutatingDraws.length+2))
+  val onlyTheValuesOfLoosingCard = markedLoosingCard.map(row => row.collect{
+    case (key, false) => (key, false)})
+  val sum = onlyTheValuesOfLoosingCard.foldLeft(Set[Int]())(_ ++ _.keySet).foldLeft(0)(_ + _)
+  sum * theFinalMarkingToDetermineLooser
+
+def markAllDrawsOnACard(card:List[Map[Int, Boolean]],draws:List[Int]): List[Map[Int, Boolean]] =
+  var result = card
+  for (draw <- draws) {
+    result = result.map(row => row.map((value, marking) => if (value == draw) (value, true) else (value, marking)))
+  }
+  result
+
+def findTheLoosingBingoCard(allCards: List[List[Map[Int, Boolean]]], theDraws:List[Int]): Int =
+  var allCardsWithMarkings = allCards
+  var whereIsNoBingo: Int = -1
+  for (draw <- theDraws)
+    allCardsWithMarkings = markADraw(allCardsWithMarkings, draw)
+  findNotBingo(allCardsWithMarkings)
+
+
+def findNotBingo(allCardsWithMarkings: List[List[Map[Int, Boolean]]]): Int =
+  var result = -1
+  for(x <- 0 to allCardsWithMarkings.length-1)
+    if (!isCardBingo(allCardsWithMarkings(x))) result = x
+  result
+
+def findTheWinningBingoCard(allCards: List[List[List[Int]]], allDraws: List[Int]): Int =
   var allCardsWithMarkings: List[List[Map[Int, Boolean]]] = createSetupForMarkings(allCards)
   var thereIsBingo: Int = -1
   var nextDraw = 0

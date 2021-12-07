@@ -7,6 +7,44 @@ object Hello extends App {
   val amountOfOverlappingLines = allCoordinatesWithOccurences.collect{ case (key, value) if (value > 1) => (key, value)}.size
   println("The amount of overlapping lines is: " + amountOfOverlappingLines)
 
+  val allCoordinatesWithOccurencesWithDiagonals = input.map(createTheTheLineCoordinatesWithDiagonals).flatten.groupBy(el => el).map(e => (e._1, e._2.length))
+  val amountOfOverlappingLinesWithDiagonals = allCoordinatesWithOccurencesWithDiagonals.collect{ case (key, value) if (value > 1) => (key, value)}.size
+  println("The amount of overlapping lines with diagonals is: " + amountOfOverlappingLinesWithDiagonals)
+
+  def createTheTheLineCoordinatesWithDiagonals(coordinateTuple:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]):  List[Tuple2[Int, Int]] = {
+    var coordinatesToWorkWith = coordinateTuple
+    if ((coordinateTuple._1._1 > coordinateTuple._2._1) || (coordinateTuple._1._2 > coordinateTuple._2._2)) {
+      coordinatesToWorkWith = coordinateTuple.swap
+    }
+    coordinatesToWorkWith match {
+      case ((start,y1),(end,y2)) if (y1 == y2) => createVerticalLine(start, end, y1)
+      case ((x1,start),(x2,end)) if (x1 == x2) => createHorizontalLine(start, end, x1)
+      case _ => createDiagonalLine(coordinatesToWorkWith)
+    }
+  }
+
+  def createDiagonalLine(coordinate:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]): List[Tuple2[Int,Int]] = {
+    var result: List[Tuple2[Int,Int]] = List()
+    if(checkIfItIsAValidDiagonalLine(coordinate)) {
+      var x = coordinate._1._1
+      var y = coordinate._1._2
+      val endX = coordinate._2._1
+      val endY = coordinate._2._2
+      while (x != endX) {
+        result = (x, y) :: result
+        if (x < endX) x += 1 else x -= 1
+        if (y < endY) y += 1 else y -= 1
+      }
+      result = (endX, endY) :: result
+    }
+    result
+  }
+
+  def checkIfItIsAValidDiagonalLine(coordinateTuple:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]): Boolean = {
+    val differenceX: Int = coordinateTuple._1._1 - coordinateTuple._2._1
+    ((coordinateTuple._1._2 + differenceX == coordinateTuple._2._2)||(coordinateTuple._1._2 - differenceX == coordinateTuple._2._2))
+  }
+
   def createAllTheLineCoordinates(coordinateTuple:Tuple2[Tuple2[Int, Int], Tuple2[Int, Int]]):  List[Tuple2[Int, Int]] = {
     var coordinatesToWorkWith = coordinateTuple
     if ((coordinateTuple._1._1 > coordinateTuple._2._1) || (coordinateTuple._1._2 > coordinateTuple._2._2)) {
